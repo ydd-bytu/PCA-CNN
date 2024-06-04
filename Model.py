@@ -20,21 +20,21 @@ plt.rcParams['axes.unicode_minus']=False
 np.random.seed(1234)
 PYTHONHASHSEED = 0
 # define path to save model
-model_path = '4regression_model.h5'
+model_path = '4r_model.h5'
 
 train_df = pd.read_csv('C:/Users/ASUS/JupyterProjects/data/train.txt', sep=" ", header=None)
 #print(train_df)
 train_df.drop(train_df.columns[[26, 27]], axis=1, inplace=True)
-train_df.columns = ['id',  's1', 's2', 's3',
-                     's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11', 's12', 's13', 's14',
-                     's15', 's16', 's17', 's18', 's19', 's20', 's21']
+train_df.columns = ['id',  's11', 's12', 's13',
+                     's21', 's22', 's23', 's31', 's32', 's33', 's41', 's42', 's43', 's51', 's52',
+                     's53', 's61', 's62', 's63', 's71', 's72', 's83']
 train_df = train_df.sort_values(['id'])
 print(train_df)
 
 # Data Labeling
-rul = pd.DataFrame(train_df.groupby('id')['cycle'].max()).reset_index()
-rul.columns = ['id', 'max']
-train_df = train_df.merge(rul, on=['id'], how='left')
+ID = pd.DataFrame(train_df.groupby('id')['cycle'].max()).reset_index()
+ID.columns = ['id', 'max']
+train_df = train_df.merge(ID, on=['id'], how='left')
 train_df['Label'] = train_df['max'] - train_df['cycle']
 train_df.drop('max', axis=1, inplace=True)
 
@@ -90,7 +90,7 @@ def gen_labels(id_df, seq_length, label):
     return data_array[seq_length:num_elements, :]
 
 
-label_gen = [gen_labels(train_df[train_df['id'] == id], sequence_length, ['RUL'])
+label_gen = [gen_labels(train_df[train_df['id'] == id], sequence_length, ['ID'])
              for id in train_df['id'].unique()]
 
 label_array = np.concatenate(label_gen).astype(np.float32)
@@ -107,6 +107,87 @@ def r2_keras(y_true, y_pred):
     res = K.sum(K.square(y_true - y_pred))
     tot = K.sum(K.square(y_true - K.mean(y_true)))
     return (1 - res / (tot + K.epsilon()))
+
+import numpy as np
+from sklearn.decomposition import PCA
+
+pca = PCA(n_components=1)
+pca.fit(train_X)
+
+weights = pca.components_
+
+single_objective = np.dot(train_X, weights.T)
+
+class LagrangeNeuralNetwork:
+    def __init__(self, input_size, hidden_size, output_size):
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+
+        # 随机初始化权重
+        self.weights_input_hidden = np.random.randn(input_size, hidden_size)
+        self.weights_hidden_output = np.random.randn(hidden_size, output_size)
+
+        # 初始化 Lagrange 乘子
+        self.lagrange_multiplier = np.zeros((hidden_size, output_size))
+
+    def forward(self, inputs):
+        # 前向传播
+        hidden_inputs = np.dot(inputs, self.weights_input_hidden)
+        hidden_outputs = self.sigmoid(hidden_inputs)
+
+        final_inputs = np.dot(hidden_outputs, self.weights_hidden_output)
+        final_outputs = self.sigmoid(final_inputs)
+
+        return final_outputs
+
+    def sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
+
+    def sigmoid_derivative(self, x):
+        return x * (1 - x)
+
+    def backward(self, inputs, targets, learning_rate):
+        # 反向传播
+        hidden_inputs = np.dot(inputs, self.weights_input_hidden)
+        hidden_outputs = self.sigmoid(hidden_inputs)
+
+        final_inputs = np.dot(hidden_outputs, self.weights_hidden_output)
+        final_outputs = self.sigmoid(final_inputs)
+
+        output_errors = targets - final_outputs
+        output_delta = output_errors * self.sigmoid_derivative(final_outputs)
+
+        hidden_errors = output_delta.dot(self.weights_hidden_output.T)
+        hidden_delta = hidden_errors * self.sigmoid_derivative(hidden_outputs)
+
+        # 更新权重
+        self.weights_hidden_output += hidden_outputs.T.dot(output_delta) * learning_rate
+        self.weights_input_hidden += inputs.T.dot(hidden_delta) * learning_rate
+
+    def lagrange_backward(self, inputs, targets, constraint, learning_rate):
+        # Lagrange 反向传播
+        hidden_inputs = np.dot(inputs, self.weights_input_hidden)
+        hidden_outputs = self.sigmoid(hidden_inputs)
+
+        final_inputs = np.dot(hidden_outputs, self.weights_hidden_output)
+        final_outputs = self.sigmoid(final_inputs)
+
+        output_errors = targets - final_outputs
+        output_delta = output_errors * self.sigmoid_derivative(final_outputs)
+
+        hidden_errors = output_delta.dot(self.weights_hidden_output.T)
+        hidden_delta = hidden_errors * self.sigmoid_derivative(hidden_outputs)
+
+        # 更新权重
+        self.weights_hidden_output += hidden_outputs.T.dot(output_delta) * learning_rate
+
+        # 更新 Lagrange 乘子
+        self.lagrange_multiplier += constraint * hidden_outputs * learning_rate
+
+        # 更新输入层到隐藏层的权重
+        self.weights_input_hidden += inputs.T.dot(hidden_delta) * learning_rate \
+                                     + self.lagrange_multiplier.dot(self.weights_hidden_output.T) * learning_rate
 
 from tensorflow.keras.layers import Conv1D
 from tensorflow.keras.layers import MaxPooling1D
@@ -132,72 +213,12 @@ model.add(Conv2D(128, (3, 3), activation='relu'))
 model.add(MaxPooling2D((2, 2)))
 
 model.add(Flatten())
-model.add(Dense(128, activation='relu'))
+LagrangeNeuralNetwork = LagrangeNeuralNetwork(128,256,21)
+model.add(LagrangeNeuralNetwork)
 model.add(Dropout(0.5))  # Dropout正则化
-
-model.add(Dense(units=nb_out))
 model.add(Activation("linear"))
 model.compile(loss='mae', optimizer='Adam',metrics=['mae',r2_keras])
 model.build((None, 50, 25))
 print(model.summary())
 
 
-# plot
-class PlotLosses(keras.callbacks.Callback):
-    def on_train_begin(self, logs={}):
-        self.i = 0
-        self.x = []
-        self.losses = []
-        self.val_losses = []
-        self.fig = plt.figure()
-        self.logs = []
-
-    def on_epoch_end(self, epoch, logs={}):
-        self.logs.append(logs)
-        self.x.append(self.i)
-        self.losses.append(logs.get('loss'))
-        self.val_losses.append(logs.get('val_loss'))
-        self.i += 1
-
-        clear_output(wait=True)
-        plt.plot(self.x, np.sqrt(self.losses), label="loss")
-        plt.plot(self.x, np.sqrt(self.val_losses), label="val_loss")
-        plt.ylabel('loss - RMSE')
-        plt.xlabel('epoch')
-        plt.legend(['train', 'test'], loc='upper left')
-        plt.title('model loss = ' + str(min(np.sqrt(self.val_losses))))
-        plt.show()
-
-
-plot_losses = PlotLosses()
-
-# fit the network
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN
-
-history = model.fit(train_X, train_Y, epochs=300, batch_size=400,
-                    validation_data=(val_X, val_Y), shuffle=True, verbose=2,
-                    callbacks=[EarlyStopping(monitor='val_loss', min_delta=0, patience=20, verbose=0, mode='min'),
-                               ModelCheckpoint(model_path, monitor='val_loss', save_best_only=True, mode='min',
-                                               verbose=0)]
-
-                    )
-
-# list all data in history
-print(history.history.keys())
-
-# history.save('lstm_rul.h5')
-
-plt.plot(history.history['loss'],'r',    label="训练集")
-plt.plot(history.history['val_loss'],'g',label="验证集")
-# 设置坐标轴刻度朝内
-plt.tick_params(axis='x', which='both', direction='in')
-plt.tick_params(axis='y', which='both', direction='in')
-# 调整刻度标签的字体大小
-plt.xticks(fontsize=12)
-plt.yticks(fontsize=12)
-plt.title("损失函数")
-plt.legend()
-plt.savefig("./image/Loss_image.SVG", dpi=None, facecolor='w', edgecolor='w',
-          orientation='portrait', papertype=None, format=None,
-          transparent=False, bbox_inches=None, pad_inches=0.1,
-          frameon=None, metadata=None)
