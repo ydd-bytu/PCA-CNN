@@ -27,7 +27,7 @@ The transportation distance of coal flow in mines is long, and the environment i
 ```
 *Data (folder): Contains test and training sets
 *Log (folder): Save the training model and parameters
-*Image (folder): Store training and prediction result images
+*Image (folder): Store training and prediction result
 *Input_data.py: Responsible for reading data and generating batches
 *Model. py: Responsible for implementing our neural network model
 *Training.py: Responsible for implementing model training and evaluation
