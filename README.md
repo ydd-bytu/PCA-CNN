@@ -1,4 +1,4 @@
-![image](https://github.com/ydd-bytu/PCA-CNN/assets/73636410/a7c56c79-f33f-4c40-ab58-456520642bc0)# PCA-CNN
+
 A Principal Component Analysis-Convolutional Neural Network (PCA-CNN)-based method for optimizing equipment operating parameters. It is used to obtain the optimal operating parameters and the optimal production mode that satisfy a multi-objective function.
 
 ## Environment Details
@@ -33,11 +33,19 @@ The transportation distance of coal flow in mines is long, and the environment i
 *Training.py: Responsible for implementing model training and evaluation
 *Test. py: Extract a piece of data from the test set for prediction.
 ```
+##  Data
+![image](https://github.com/ydd-bytu/PCA-CNN/assets/73636410/74f4dfaf-5eb6-49c9-84c7-76b722593d99)
 
 ## Running Results
+PCA-CNN Loss:
+![image](https://github.com/ydd-bytu/PCA-CNN/assets/73636410/7d0949e5-fd14-4912-861a-11d273e36d9b)
+
+evaluation metrics
 ```
 Datasets	MAE	MSE	MAPE	R2-Score
 Training set	0.00790	0.00017	0.01183	0.8845
 Test set	0.00894	0.00021	0.01421	0.8827
 Validation set	0.00911	0.00024	0.01209	0.8806
 ```
+Comparison of different methods"
+![image](https://github.com/ydd-bytu/PCA-CNN/assets/73636410/a7c56c79-f33f-4c40-ab58-456520642bc0)# PCA-CNN
