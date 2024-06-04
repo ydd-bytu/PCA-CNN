@@ -29,9 +29,9 @@ The transportation distance of coal flow in mines is long, and the environment i
 *Log (folder): Save the training model and parameters
 *Image (folder): Store training and prediction result
 *Input_data.py: Responsible for reading data and generating batches
-*Model. py: Responsible for implementing our neural network model
+*Model.py: Responsible for implementing our neural network model
 *Training.py: Responsible for implementing model training and evaluation
-*Test. py: Extract a piece of data from the test set for prediction.
+*Test.py: Extract data from the test set for prediction.
 ```
 ##  Data
 ![image](https://github.com/ydd-bytu/PCA-CNN/assets/73636410/74f4dfaf-5eb6-49c9-84c7-76b722593d99)
@@ -47,5 +47,5 @@ Training set	0.00790	0.00017	0.01183	0.8845
 Test set	0.00894	0.00021	0.01421	0.8827
 Validation set	0.00911	0.00024	0.01209	0.8806
 ```
-Comparison of different methods"
+Comparison of different methods
 ![image](https://github.com/ydd-bytu/PCA-CNN/assets/73636410/a7c56c79-f33f-4c40-ab58-456520642bc0)# PCA-CNN
