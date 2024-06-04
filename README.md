@@ -1,4 +1,4 @@
-# PCA-CNN
+![image](https://github.com/ydd-bytu/PCA-CNN/assets/73636410/a7c56c79-f33f-4c40-ab58-456520642bc0)# PCA-CNN
 A Principal Component Analysis-Convolutional Neural Network (PCA-CNN)-based method for optimizing equipment operating parameters. It is used to obtain the optimal operating parameters and the optimal production mode that satisfy a multi-objective function.
 
 ## Environment Details
@@ -8,6 +8,16 @@ numpy==1.20.1
 pandas==1.2.4
 matplotlib==3.3.4
 tensorflow==2.8
+scipy==1.7.1
+faiss-cpu==1.6.3
+absl-py==0.13.0
+```
+
+## Requirements
+
+To install run:
+```bash
+$ pip install -U -r requirements.txt
 ```
 
 ## Overview
@@ -22,4 +32,12 @@ The transportation distance of coal flow in mines is long, and the environment i
 *Model. py: Responsible for implementing our neural network model
 *Training.py: Responsible for implementing model training and evaluation
 *Test. py: Extract a piece of data from the test set for prediction.
+```
+
+## Running Results
+```
+Datasets	MAE	MSE	MAPE	R2-Score
+Training set	0.00790	0.00017	0.01183	0.8845
+Test set	0.00894	0.00021	0.01421	0.8827
+Validation set	0.00911	0.00024	0.01209	0.8806
 ```
